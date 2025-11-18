@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyTrails - Smart Travel Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <!-- Hero Section with Mountain Road Background -->
+    <div class="hero-section" id="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">🌄 SkyTrails</h1>
+            <p class="hero-subtitle">Your Journey Through Uttarakhand Begins Here</p>
+            <p class="hero-description">Plan your perfect trip to Uttarakhand with smart recommendations, region-aware itineraries, and seamless booking</p>
+            <button class="btn btn-primary" onclick="startPlanning()">Start Planning Your Trip</button>
+        </div>
+        <div class="scroll-indicator">↓ Scroll to explore</div>
+    </div>
+
+    <!-- Main App (hidden initially) -->
+    <div id="app" class="app" style="display: none;">
+        <header class="site-header">
+            <nav class="nav container">
+                <div class="brand">
+                    <span class="brand-icon">🌄</span>
+                    <span class="brand-name">SkyTrails</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#" onclick="showPage('planner'); return false;">Travel Planner</a></li>
+                    <li><a href="#" onclick="showPage('itinerary'); return false;">My Itinerary</a></li>
+                    <li><a href="#" onclick="showPage('transport'); return false;">Transport</a></li>
+                    <li><a href="#" onclick="showPage('feedback'); return false;">Feedback</a></li>
+                    <li><a href="#" onclick="showPage('admin'); return false;">Admin/Partners</a></li>
+                    <li><a href="#" onclick="backToHome(); return false;">Home</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="site-main">
+            <!-- Travel Planner Page -->
+            <section id="planner-page" class="page container active">
+                <header class="section-header">
+                    <h2>✈️ Travel Planner</h2>
+                    <p>Create your perfect Uttarakhand itinerary</p>
+                </header>
+
+                <div class="planner-card">
+                    <div class="form-section">
+                        <h3>Tell Us About Yourself</h3>
+                        <div class="form-row">
+                            <div class="field">
+                                <label for="user-name">Your Name</label>
+                                <input type="text" id="user-name" placeholder="Enter your name" required>
+                            </div>
+                            <div class="field">
+                                <label for="user-age">Age</label>
+                                <input type="number" id="user-age" placeholder="25" min="1" max="120" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Choose Your Travel Style</h3>
+                        <div class="choice-buttons">
+                            <button class="choice-btn active" onclick="setPlaceSelectionMode('suggested')">
+                                <span class="choice-icon">✨</span>
+                                <span class="choice-title">System Suggested</span>
+                                <span class="choice-desc">Let us recommend places based on your profile</span>
+                            </button>
+                            <button class="choice-btn" onclick="setPlaceSelectionMode('manual')">
+                                <span class="choice-icon">🗺️</span>
+                                <span class="choice-title">I'll Choose</span>
+                                <span class="choice-desc">Select places from our curated list</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- System Suggested Places (shown by default) -->
+                    <div id="suggested-places-section" class="form-section">
+                        <h3>Recommended Places for You</h3>
+                        <div class="field" style="margin-bottom: 1.5rem;">
+                            <label for="suggested-city">Select City</label>
+                            <select id="suggested-city" onchange="filterSuggestedByCity()" required>
+                                <option value="">-- Choose a City --</option>
+                            </select>
+                        </div>
+                        <div id="suggested-places-list" class="places-container"></div>
+                    </div>
+
+                    <!-- Manual Selection Places -->
+                    <div id="manual-places-section" class="form-section" style="display: none;">
+                        <h3>Select Places You Want to Visit</h3>
+                        <div class="field" style="margin-bottom: 1.5rem;">
+                            <label for="manual-city">Select City</label>
+                            <select id="manual-city" onchange="filterManualByCity()" required>
+                                <option value="">-- Choose a City --</option>
+                            </select>
+                        </div>
+                        <div id="manual-places-list" class="places-container"></div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Travel Duration</h3>
+                        <div class="field">
+                            <label for="travel-days">Number of Days (1-12)</label>
+                            <input type="number" id="travel-days" value="4" min="1" max="12" required>
+                        </div>
+                    </div>
+
+                    <!-- Hotels will be suggested after places are selected -->
+                    <div id="hotels-suggestion-section" class="form-section" style="display: none;">
+                        <h3>🏨 Suggested Hotels in Your Selected Cities</h3>
+                        <p style="color: var(--muted); margin-bottom: 1rem;">We found hotels in the cities you're visiting. Select one or skip.</p>
+                        <div id="suggested-hotels-list" class="hotels-list"></div>
+                        <button class="btn btn-secondary" onclick="skipHotel()" style="margin-top: 1rem;">Skip Hotel Selection</button>
+                    </div>
+
+                    <button class="btn btn-primary btn-large" onclick="checkAndSuggestHotels()">Generate My Itinerary</button>
+                </div>
+
+                <div id="planner-result" class="result-message"></div>
+            </section>
+
+            <!-- Itinerary Page -->
+            <section id="itinerary-page" class="page container">
+                <header class="section-header">
+                    <h2>📋 My Itinerary</h2>
+                    <p>Your personalized travel plan</p>
+                </header>
+                <div id="itinerary-display" class="itinerary-display"></div>
+            </section>
+
+            <!-- Transport Page -->
+            <section id="transport-page" class="page container">
+                <header class="section-header">
+                    <h2>🚗 Transportation Options</h2>
+                    <p>Choose how you want to travel</p>
+                </header>
+
+                <div class="transport-options">
+                    <div class="transport-card" onclick="selectTransport('driver')">
+                        <div class="transport-icon">👨‍✈️</div>
+                        <h3>Recommended Driver</h3>
+                        <p>Get a local driver familiar with Uttarakhand routes</p>
+                        <div class="transport-details">
+                            <span class="price">₹2000-3000/day</span>
+                            <span class="badge">Popular</span>
+                        </div>
+                        <button class="btn btn-secondary">Select Driver</button>
+                    </div>
+
+                    <div class="transport-card" onclick="selectTransport('bike')">
+                        <div class="transport-icon">🏍️</div>
+                        <h3>Rent a Bike</h3>
+                        <p>Freedom to explore at your own pace</p>
+                        <div class="transport-details">
+                            <span class="price">₹800-1200/day</span>
+                            <span class="badge">Adventure</span>
+                        </div>
+                        <button class="btn btn-secondary">Rent Bike</button>
+                    </div>
+
+                    <div class="transport-card" onclick="selectTransport('scooty')">
+                        <div class="transport-icon">🛵</div>
+                        <h3>Rent a Scooty</h3>
+                        <p>Easy to ride, perfect for city exploration</p>
+                        <div class="transport-details">
+                            <span class="price">₹500-800/day</span>
+                            <span class="badge">Economy</span>
+                        </div>
+                        <button class="btn btn-secondary">Rent Scooty</button>
+                    </div>
+
+                    <div class="transport-card" onclick="selectTransport('self')">
+                        <div class="transport-icon">🚗</div>
+                        <h3>Self Vehicle</h3>
+                        <p>Bring your own vehicle for maximum flexibility</p>
+                        <div class="transport-details">
+                            <span class="price">Fuel costs only</span>
+                            <span class="badge">Flexible</span>
+                        </div>
+                        <button class="btn btn-secondary">Use Own Vehicle</button>
+                    </div>
+                </div>
+
+                <div id="transport-result" class="result-message"></div>
+
+                <div class="transport-form" id="transport-form" style="display: none;">
+                    <h3>Transport Booking Details</h3>
+                    <form id="transport-booking-form" class="form-card">
+                        <div class="field">
+                            <label for="transport-name">Name</label>
+                            <input type="text" id="transport-name" required>
+                        </div>
+                        <div class="field">
+                            <label for="transport-phone">Phone</label>
+                            <input type="tel" id="transport-phone" required>
+                        </div>
+                        <div class="field">
+                            <label for="transport-start">Pickup Location</label>
+                            <input type="text" id="transport-start" placeholder="City or Hotel name" required>
+                        </div>
+                        <div class="field">
+                            <label for="transport-date">Start Date</label>
+                            <input type="date" id="transport-date" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Feedback Page -->
+            <section id="feedback-page" class="page container">
+                <header class="section-header">
+                    <h2>💬 Share Your Experience</h2>
+                    <p>Help us improve SkyTrails</p>
+                </header>
+
+                <div class="form-card">
+                    <form id="feedback-form">
+                        <div class="field">
+                            <label for="feedback-name">Your Name</label>
+                            <input type="text" id="feedback-name" required>
+                        </div>
+                        <div class="field">
+                            <label for="feedback-rating">Overall Rating</label>
+                            <div class="rating-buttons">
+                                <button type="button" class="rating-btn" data-rating="1">😞</button>
+                                <button type="button" class="rating-btn" data-rating="2">😐</button>
+                                <button type="button" class="rating-btn" data-rating="3">🙂</button>
+                                <button type="button" class="rating-btn" data-rating="4">😊</button>
+                                <button type="button" class="rating-btn active" data-rating="5">😍</button>
+                            </div>
+                            <input type="hidden" id="feedback-rating-value" value="5">
+                        </div>
+                        <div class="field">
+                            <label for="feedback-message">Your Feedback</label>
+                            <textarea id="feedback-message" rows="5" placeholder="Tell us about your experience with SkyTrails..." required></textarea>
+                        </div>
+                        <div class="field">
+                            <label for="feedback-suggestions">Suggestions (Optional)</label>
+                            <textarea id="feedback-suggestions" rows="3" placeholder="Any features you'd like to see?"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-large">Submit Feedback</button>
+                    </form>
+                    <div id="feedback-result" class="result-message"></div>
+                </div>
+
+                <div class="feedback-display" id="feedback-display">
+                    <h3>Recent Feedback</h3>
+                    <div id="feedback-list"></div>
+                </div>
+            </section>
+
+            <!-- Admin/Partners POV Page -->
+            <section id="admin-page" class="page container">
+                <header class="section-header">
+                    <h2>🔧 Admin & Partners Portal</h2>
+                    <p>Manage your business on SkyTrails</p>
+                </header>
+
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="admin" onclick="switchAdminTab('admin')">Admin Dashboard</button>
+                    <button class="tab-btn" data-tab="driver" onclick="switchAdminTab('driver')">Driver Registration</button>
+                    <button class="tab-btn" data-tab="bike-rental" onclick="switchAdminTab('bike-rental')">Bike Rental Service</button>
+                    <button class="tab-btn" data-tab="hotel" onclick="switchAdminTab('hotel')">Hotel Management</button>
+                </div>
+
+                <!-- Admin Dashboard -->
+                <div id="admin-tab" class="admin-tab-content active">
+                    <div class="dashboard-stats">
+                        <div class="stat-card">
+                            <h3>Total Bookings</h3>
+                            <p class="stat-number" id="total-bookings">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Active Itineraries</h3>
+                            <p class="stat-number" id="active-itineraries">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Registered Drivers</h3>
+                            <p class="stat-number" id="registered-drivers">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Partner Hotels</h3>
+                            <p class="stat-number" id="partner-hotels">0</p>
+                        </div>
+                    </div>
+
+                    <div class="admin-section">
+                        <h3>Recent Bookings</h3>
+                        <div id="recent-bookings" class="data-list"></div>
+                    </div>
+                </div>
+
+                <!-- Driver Registration -->
+                <div id="driver-tab" class="admin-tab-content">
+                    <div class="form-card">
+                        <h3>👨‍✈️ Register as Driver</h3>
+                        <form id="driver-registration-form">
+                            <div class="form-row">
+                                <div class="field">
+                                    <label for="driver-name">Full Name</label>
+                                    <input type="text" id="driver-name" placeholder="Enter your name" required>
+                                </div>
+                                <div class="field">
+                                    <label for="driver-phone">Phone Number</label>
+                                    <input type="tel" id="driver-phone" placeholder="10-digit mobile number" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="field">
+                                    <label for="driver-license">License Number</label>
+                                    <input type="text" id="driver-license" placeholder="DL number" required>
+                                </div>
+                                <div class="field">
+                                    <label for="driver-experience">Years of Experience</label>
+                                    <input type="number" id="driver-experience" min="0" placeholder="Years" required>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="driver-vehicle">Vehicle Type</label>
+                                <select id="driver-vehicle" required>
+                                    <option value="">Select vehicle</option>
+                                    <option value="sedan">Sedan</option>
+                                    <option value="suv">SUV</option>
+                                    <option value="hatchback">Hatchback</option>
+                                    <option value="innova">Innova</option>
+                                    <option value="tempo">Tempo Traveller</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="driver-areas">Service Areas (Comma separated)</label>
+                                <input type="text" id="driver-areas" placeholder="e.g., Rishikesh, Haridwar, Dehradun" required>
+                            </div>
+                            <div class="field">
+                                <label for="driver-rate">Daily Rate (₹)</label>
+                                <input type="number" id="driver-rate" min="1000" placeholder="2000" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Register as Driver</button>
+                        </form>
+                        <div id="driver-result" class="result-message"></div>
+                    </div>
+
+                    <div class="admin-section" style="margin-top: 2rem;">
+                        <h3>My Driver Profile</h3>
+                        <div id="driver-profile" class="data-list"></div>
+                    </div>
+
+                    <div class="admin-section">
+                        <h3>Assigned Bookings</h3>
+                        <div id="driver-bookings" class="data-list"></div>
+                    </div>
+                </div>
+
+                <!-- Bike Rental Service -->
+                <div id="bike-rental-tab" class="admin-tab-content">
+                    <div class="form-card">
+                        <h3>🏍️ Bike Rental Service Management</h3>
+                        <form id="bike-add-form">
+                            <div class="form-row">
+                                <div class="field">
+                                    <label for="bike-type">Vehicle Type</label>
+                                    <select id="bike-type" required>
+                                        <option value="">Select type</option>
+                                        <option value="bike">Bike (Motorcycle)</option>
+                                        <option value="scooty">Scooty</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="bike-brand">Brand/Model</label>
+                                    <input type="text" id="bike-brand" placeholder="e.g., Royal Enfield Classic" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="field">
+                                    <label for="bike-location">Location (City)</label>
+                                    <input type="text" id="bike-location" placeholder="City name" required>
+                                </div>
+                                <div class="field">
+                                    <label for="bike-rate">Daily Rate (₹)</label>
+                                    <input type="number" id="bike-rate" min="300" placeholder="800" required>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="bike-status">Status</label>
+                                <select id="bike-status" required>
+                                    <option value="available">Available</option>
+                                    <option value="rented">Currently Rented</option>
+                                    <option value="maintenance">Under Maintenance</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Vehicle</button>
+                        </form>
+                        <div id="bike-result" class="result-message"></div>
+                    </div>
+
+                    <div class="admin-section" style="margin-top: 2rem;">
+                        <h3>My Fleet</h3>
+                        <div id="bike-fleet" class="data-list"></div>
+                    </div>
+
+                    <div class="admin-section">
+                        <h3>Active Rentals</h3>
+                        <div id="bike-rentals" class="data-list"></div>
+                    </div>
+                </div>
+
+                <!-- Hotel Management -->
+                <div id="hotel-tab" class="admin-tab-content">
+                    <div class="form-card">
+                        <h3>🏨 Hotel Management</h3>
+                        <form id="hotel-registration-form">
+                            <div class="form-row">
+                                <div class="field">
+                                    <label for="hotel-name-admin">Hotel Name</label>
+                                    <input type="text" id="hotel-name-admin" placeholder="Hotel name" required>
+                                </div>
+                                <div class="field">
+                                    <label for="hotel-city-admin">City</label>
+                                    <input type="text" id="hotel-city-admin" placeholder="City name" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="field">
+                                    <label for="hotel-address">Address</label>
+                                    <input type="text" id="hotel-address" placeholder="Full address" required>
+                                </div>
+                                <div class="field">
+                                    <label for="hotel-phone">Contact Phone</label>
+                                    <input type="tel" id="hotel-phone" placeholder="Phone number" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="field">
+                                    <label for="hotel-price-admin">Price per Night (₹)</label>
+                                    <input type="number" id="hotel-price-admin" min="500" placeholder="2000" required>
+                                </div>
+                                <div class="field">
+                                    <label for="hotel-rating-admin">Star Rating (1-5)</label>
+                                    <input type="number" id="hotel-rating-admin" min="1" max="5" placeholder="4" required>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="hotel-amenities">Amenities (Comma separated)</label>
+                                <input type="text" id="hotel-amenities" placeholder="WiFi, Pool, Restaurant, Parking">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Register Hotel</button>
+                        </form>
+                        <div id="hotel-result" class="result-message"></div>
+                    </div>
+
+                    <div class="admin-section" style="margin-top: 2rem;">
+                        <h3>My Hotel Properties</h3>
+                        <div id="hotel-properties" class="data-list"></div>
+                    </div>
+
+                    <div class="admin-section">
+                        <h3>Upcoming Bookings</h3>
+                        <div id="hotel-bookings" class="data-list"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            <div class="container footer-inner">
+                <p>© <span id="year"></span> SkyTrails - Your Gateway to Uttarakhand</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>
